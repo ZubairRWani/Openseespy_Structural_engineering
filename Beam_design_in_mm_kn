@@ -1,0 +1,67 @@
+import math
+
+def design_beam(beam_width, beam_depth, fc, fy, dx, cover, effective_depth, num_bars):
+    # Check that input values are valid
+    if beam_width <= 0:
+        raise ValueError("Beam width must be positive")
+    if beam_depth <= 0:
+        raise ValueError("Beam depth must be positive")
+    if fc <= 0:
+        raise ValueError("Concrete strength must be positive")
+    if fy <= 0:
+        raise ValueError("Steel strength must be positive")
+    if dx < 0:
+        raise ValueError("Distance from extreme compression fiber to the center of the steel must be non-negative")
+    if cover < 0:
+        raise ValueError("Cover must be non-negative")
+    if effective_depth <= 0:
+        raise ValueError("Effective depth must be positive")
+    if num_bars <= 0:
+        raise ValueError("Number of bars must be positive")
+    
+    # Calculate the area of the beam cross section
+    beam_area = beam_width * beam_depth
+    
+    # Calculate the required area of steel reinforcement
+    As_req = (fc * beam_area) / (fy - fc)
+    
+    # Set an initial bar size and spacing
+    bar_size = 12.7  # millimeters
+    spacing = (beam_width - (2 * cover) - (num_bars * bar_size)) / (num_bars - 1)
+    if spacing < 0:
+        raise ValueError("Not enough room for the specified number of bars with the given cover and bar size")
+    
+    # Calculate the required area of steel per bar
+    As_bar = As_req / num_bars
+    
+    # Calculate the diameter of each bar
+    bar_diameter = math.sqrt(4 * As_bar / math.pi)
+    
+    # Calculate the depth of the beam
+    depth = effective_depth + cover + (bar_diameter / 2)
+    
+    # Calculate the moment of inertia of the beam
+    I = (beam_width * math.pow(beam_depth, 3)) / 12
+    
+    # Calculate the distance from the beam's neutral axis to the top of the beam
+    d = beam_depth / 2
+    
+    # Calculate the maximum bending stress in the beam
+    fb = (fc * (d - dx - (fc / fy))) / I
+    
+    # Calculate the maximum bending moment in the beam
+    M = fb * I
+    
+    print("Beam design complete:")
+    print("- Beam width: {:.2f} meters".format(beam_width))
+    print("- Beam depth: {:.2f} meters".format(depth))
+    print("- Steel bar size: {:.2f} millimeters".format(bar_size))
+    print("- Steel bar spacing: {:.2f} millimeters".format(spacing))
+    print("- Maximum bending moment: {:.2f} kN-m".format(M / 1000))
+
+# Example usage: Design a beam with a width of 500 mm, depth of 750 mm,
+# concrete strength of 30 MPa, steel strength of 500 MPa, distance from the
+# extreme compression fiber to the center of the steel of 50 mm, cover of 50 mm,
+# effective depth of 700 mm, and 8 bars.
+# design_beam(beam_width, beam_depth, fc, fy, dx, cover, effective_depth, num_bars)
+design_beam(500, 750, 30, 500, 50, 50, 700, 8)
