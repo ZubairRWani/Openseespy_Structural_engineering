@@ -1,0 +1,58 @@
+@author: Zubair
+"""
+
+import openseespy.opensees as ops
+
+# Start the analysis
+ops.wipe()
+ops.model('basic', '-ndm', 3, '-ndf', 6)
+
+# Define the material properties
+fc = 25 # concrete compressive strength
+ft = 5  # concrete tensile strength
+Ets = 5000 # steel modulus of elasticity
+fy = 60  # steel yield strength
+GJ = 0.1 # torsional rigidity
+
+# Define the geometric properties of the beam
+L = 20 # length of the beam
+H = 0.2 # height of the beam
+B = 0.2 # width of the beam
+
+# Define the section properties
+A = H*B   # cross-sectional area
+Iy = B*H**3/12  # moment of inertia about the y-axis
+Iz = H*B**3/12  # moment of inertia about the z-axis
+J = Iy + Iz  # torsional constant
+
+# Define the applied torsional load
+T = 1000
+
+# Define the nodes
+ops.node(1, 0, 0, 0)
+ops.node(2, L, 0, 0)
+
+# Define the single point constraint
+ops.fix(1, 1, 1, 1)
+ops.fix(2, 1, 1, 1)
+
+# Define the element
+ops.element('dispBeamColumn', 1, 1, 2, A, Ets, fy, GJ, Iy, Iz, J)
+
+# Define the load pattern
+ops.timeSeries('Linear', 1)
+ops.pattern('Plain', 1, 1, '-fact', T)
+
+# Apply the load
+ops.load(2, 0, 0, T, 0, 0)
+
+# Perform the analysis
+ops.analyze(1)
+
+# Get the nodal displacement and element force
+node_disp = ops.nodeDisp(2)
+elem_force = ops.eleResponse(1, 'force')
+
+# Print the results
+print("Nodal displacement:", node_disp)
+print("Element force:", elem_force)
